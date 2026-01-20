@@ -5,7 +5,7 @@ using StudyTrack.Api.Models;
 
 namespace StudyTrack.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/tasks")] // EXPLIZIT KLEINGESCHRIEBEN!
     [ApiController]
     public class TasksController : ControllerBase
     {
@@ -16,14 +16,14 @@ namespace StudyTrack.Api.Controllers
             _context = context;
         }
 
-        // GET: api/Tasks
+        // GET: api/tasks
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasks()
         {
             return await _context.Tasks.ToListAsync();
         }
 
-        // GET: api/Tasks/5
+        // GET: api/tasks/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskItem>> GetTask(int id)
         {
@@ -37,7 +37,7 @@ namespace StudyTrack.Api.Controllers
             return task;
         }
 
-        // POST: api/Tasks
+        // POST: api/tasks
         [HttpPost]
         public async Task<ActionResult<TaskItem>> CreateTask(TaskItem task)
         {
@@ -47,7 +47,7 @@ namespace StudyTrack.Api.Controllers
             return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
         }
 
-        // PUT: api/Tasks/5
+        // PUT: api/tasks/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTask(int id, TaskItem task)
         {
@@ -74,7 +74,7 @@ namespace StudyTrack.Api.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Tasks/5
+        // DELETE: api/tasks/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
