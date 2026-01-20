@@ -39,14 +39,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
-app.UseDefaultFiles(); // DIESE ZEILE HINZUFÜGEN
+// WICHTIG: Reihenfolge beachten!
+app.UseDefaultFiles();  // ZUERST
+app.UseStaticFiles();   // DANACH
 
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
-
-// Fallback zur index.html
-app.MapFallbackToFile("index.html"); // DIESE ZEILE AUCH HINZUFÜGEN
 
 app.Run();
