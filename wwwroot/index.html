@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyTrack - ToDo Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+            button:hover {
+                background: #5568d3;
+            }
+
+        .task-list {
+            margin-top: 30px;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .task-item.done {
+                opacity: 0.6;
+                border-left-color: #28a745;
+            }
+
+        .task-content h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .task-content p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .task-actions button {
+            padding: 5px 15px;
+            margin-left: 5px;
+            font-size: 14px;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+        }
+
+        .btn-done {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 StudyTrack - Meine Lernziele</h1>
+
+        <form id="taskForm">
+            <div class="form-group">
+                <label>Aufgabe:</label>
+                <input type="text" id="title" required placeholder="z.B. Mathematik Kapitel 5 lernen">
+            </div>
+            <div class="form-group">
+                <label>Fach:</label>
+                <input type="text" id="subject" placeholder="z.B. Mathematik">
+            </div>
+            <div class="form-group">
+                <label>Fälligkeitsdatum:</label>
+                <input type="date" id="dueDate">
+            </div>
+            <button type="submit">Aufgabe hinzufügen</button>
+        </form>
+
+        <div class="task-list">
+            <h2>Meine Aufgaben</h2>
+            <div id="taskContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api/tasks';
+
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const task = {
+                title: document.getElementById('title').value,
+                subject: document.getElementById('subject').value,
+                dueDate: document.getElementById('dueDate').value || null,
+                isDone: false
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+
+                if (response.ok) {
+                    document.getElementById('taskForm').reset();
+                    loadTasks();
+                }
+            } catch (error) {
+                console.error('Fehler:', error);
+                alert('Fehler beim Erstellen der Aufgabe');
+            }
+        });
+
+        async function loadTasks() {
+            try {
+                const response = await fetch(API_URL);
+                const tasks = await response.json();
+                displayTasks(tasks);
+            } catch (error) {
+                console.error('Fehler:', error);
+            }
+        }
+
+        function displayTasks(tasks) {
+            const container = document.getElementById('taskContainer');
+            container.innerHTML = '';
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = `task-item ${task.isDone ? 'done' : ''}`;
+
+                const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString('de-DE') : 'Kein Datum';
+
+                taskDiv.innerHTML = `
+                    <div class="task-content">
+                        <h3>${task.title}</h3>
+                        <p>📖 ${task.subject} | 📅 ${dueDate}</p>
+                    </div>
+                    <div class="task-actions">
+                        <button class="btn-done" onclick="toggleTask(${task.id}, ${!task.isDone})">
+                            ${task.isDone ? '↩️ Zurücksetzen' : '✅ Erledigt'}
+                        </button>
+                        <button class="btn-delete" onclick="deleteTask(${task.id})">🗑️ Löschen</button>
+                    </div>
+                `;
+
+                container.appendChild(taskDiv);
+            });
+        }
+
+        async function toggleTask(id, isDone) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`);
+                const task = await response.json();
+                task.isDone = isDone;
+
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+
+                loadTasks();
+            } catch (error) {
+                console.error('Fehler:', error);
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('Aufgabe wirklich löschen?')) return;
+
+            try {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadTasks();
+            } catch (error) {
+                console.error('Fehler:', error);
+            }
+        }
+    </script>
+</body>
+</html>
