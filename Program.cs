@@ -30,10 +30,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Static Files HIER hinzufügen
-app.UseStaticFiles();
-app.UseDefaultFiles();
-
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -42,8 +38,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+app.UseDefaultFiles(); // DIESE ZEILE HINZUFÜGEN
+
 app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
+
+// Fallback zur index.html
+app.MapFallbackToFile("index.html"); // DIESE ZEILE AUCH HINZUFÜGEN
 
 app.Run();
