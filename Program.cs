@@ -32,6 +32,7 @@ var app = builder.Build();
 
 // Static Files HIER hinzufügen
 app.UseStaticFiles();
+app.UseDefaultFiles();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
